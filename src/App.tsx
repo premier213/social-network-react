@@ -46,7 +46,6 @@ export default function App() {
                 </Grid>
                 <FormSection />
             </Grid>
-            {/* <Container maxWidth='lg'>222</Container> */}
         </Box>
     );
 }

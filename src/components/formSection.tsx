@@ -163,6 +163,7 @@ const FormSection = (): ReactElement => {
                         </Box>
                     </Collapse>
                 </Grid>
+                {/* list section */}
                 <ShowSection social={social} />
             </Grid>
         </>
