@@ -9,16 +9,13 @@ import {
     Select,
     Stack,
     TextField,
-    ToggleButton,
     Typography,
 } from '@mui/material';
-import TwitterIcon from '@mui/icons-material/Twitter';
 import { Box } from '@mui/system';
 import { amber, blueGrey } from '@mui/material/colors';
 import AddIcon from '@mui/icons-material/Add';
-import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import showIcon from '../utils/showIcon';
+import ShowSection from './showSection';
+import some from 'lodash/some';
 
 export interface Obj {
     [key: string]: string;
@@ -29,6 +26,7 @@ const FormSection = (): ReactElement => {
     const [id, setId] = useState('');
     const [link, setLink] = useState('');
     const [type, setType] = useState('');
+    const [uniqueStatus, setUniqueStatus] = useState(false);
 
     function handleClear() {
         setId('');
@@ -37,7 +35,12 @@ const FormSection = (): ReactElement => {
         setCollapseState(false);
     }
     function handleSubmit() {
-        setSocial((oldArray) => [...oldArray, { id, link, type }]);
+        const checkUnique = some(social, { id: id, link: link, type: type });
+        if (!checkUnique) {
+            setSocial((oldArray) => [...oldArray, { id, link, type }]);
+        } else {
+            setUniqueStatus(true);
+        }
     }
 
     return (
@@ -71,10 +74,15 @@ const FormSection = (): ReactElement => {
                             <Grid container direction='row' spacing={2} my={1}>
                                 <Grid item xs={4}>
                                     <FormControl sx={{ m: 1, width: '90%' }}>
-                                        <InputLabel id='type'>نوع</InputLabel>
+                                        <InputLabel id='type' sx={{ color: 'white' }}>
+                                            نوع
+                                        </InputLabel>
                                         <Select
                                             sx={{
-                                                border: 'red',
+                                                color: 'white',
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'gray',
+                                                },
                                             }}
                                             value={type}
                                             onChange={(e) => setType(e.target.value)}
@@ -94,6 +102,14 @@ const FormSection = (): ReactElement => {
                                 <Grid item xs={4}>
                                     <FormControl sx={{ m: 1, width: '90%' }}>
                                         <TextField
+                                            sx={{
+                                                '.MuiInputBase-root': {
+                                                    color: 'white',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'gray',
+                                                },
+                                            }}
                                             value={link}
                                             onChange={(e) => setLink(e.target.value)}
                                             label='لینک'
@@ -103,19 +119,30 @@ const FormSection = (): ReactElement => {
                                 <Grid item xs={4}>
                                     <FormControl sx={{ m: 1, width: '90%' }}>
                                         <TextField
+                                            sx={{
+                                                '.MuiInputBase-root': {
+                                                    color: 'white',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    color: 'white',
+                                                    borderColor: 'gray',
+                                                },
+                                            }}
                                             value={id}
                                             onChange={(e) => setId(e.target.value)}
                                             label='آی دی (ID)'
                                         />
                                     </FormControl>
+                                    <Box sx={{ color: 'red', fontSize: 13 }}>{uniqueStatus && 'مقادیر تکراری است'}</Box>
                                 </Grid>
                             </Grid>
+
                             <Grid container justifyContent='end'>
                                 <Stack spacing={2} direction='row' mx={2}>
                                     <Button
                                         onClick={handleClear}
                                         variant='outlined'
-                                        sx={{ borderRadius: 2, color: 'white', borderColor: blueGrey[600] }}>
+                                        sx={{ borderRadius: 2, color: 'white', borderColor: blueGrey[600], right: 0 }}>
                                         انصراف
                                     </Button>
                                     <Button
@@ -136,60 +163,7 @@ const FormSection = (): ReactElement => {
                         </Box>
                     </Collapse>
                 </Grid>
-                <Grid item>
-                    <Box mx={2} my={2} py={2} sx={{ bgcolor: '#303A44', width: '96%', borderRadius: 2 }}>
-                        {social?.map((item, index) => {
-                            return (
-                                <Grid container direction='row' key={index} mx={2} sx={{ fontSize: 12 }}>
-                                    <Box sx={{ color: 'white', marginTop: '-2px' }} mr={1}>
-                                        {showIcon(item.type)}
-                                    </Box>
-
-                                    <Box sx={{ color: 'white', width: '10%' }}>{item.type}</Box>
-
-                                    <Box sx={{ color: 'white', width: '20%' }}>
-                                        <Typography mx={1} variant='caption' sx={{ color: 'gray' }}>
-                                            آی دی:
-                                        </Typography>{' '}
-                                        {item.id}
-                                    </Box>
-
-                                    <Box sx={{ color: 'white', width: '40%' }}>
-                                        <Typography mx={1} variant='caption' sx={{ color: 'gray' }}>
-                                            لینک:
-                                        </Typography>
-                                        <Typography mx={1} variant='caption' sx={{ color: amber[600] }}>
-                                            {item.link}
-                                        </Typography>
-                                    </Box>
-
-                                    <Grid xs={1}>
-                                        <Box>
-                                            <Button
-                                                sx={{ color: amber[600] }}
-                                                variant='text'
-                                                size='small'
-                                                startIcon={<ModeEditOutlineOutlinedIcon />}>
-                                                <Typography variant='caption'>ویرایش</Typography>
-                                            </Button>
-                                        </Box>
-                                    </Grid>
-                                    <Grid xs={1}>
-                                        <Box ml={2}>
-                                            <Button
-                                                color='error'
-                                                variant='text'
-                                                size='small'
-                                                startIcon={<DeleteOutlinedIcon />}>
-                                                <Typography variant='caption'>حذف</Typography>
-                                            </Button>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            );
-                        })}
-                    </Box>
-                </Grid>
+                <ShowSection social={social} />
             </Grid>
         </>
     );

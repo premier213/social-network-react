@@ -10,6 +10,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "jss-rtl": "^0.3.0",
+    "lodash": "^4.17.21",
     "react": "latest",
     "react-dom": "latest",
     "react-scripts": "latest",
@@ -36,6 +37,7 @@
     ]
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.178",
     "@types/stylis": "^4.0.2"
   }
 }
