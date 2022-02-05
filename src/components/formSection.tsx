@@ -16,28 +16,35 @@ import { amber, blueGrey } from '@mui/material/colors';
 import AddIcon from '@mui/icons-material/Add';
 import ShowSection from './showSection';
 import some from 'lodash/some';
+import { useRecoilState } from 'recoil';
+import socialState from '../store/atom';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Obj {
     [key: string]: string;
 }
 const FormSection = (): ReactElement => {
-    const [social, setSocial] = useState<Array<Obj>>([]);
+    const [social, setSocial] = useRecoilState(socialState);
     const [collapseState, setCollapseState] = useState(false);
-    const [id, setId] = useState('');
+    const [username, setUsername] = useState('');
     const [link, setLink] = useState('');
     const [type, setType] = useState('');
     const [uniqueStatus, setUniqueStatus] = useState(false);
 
+    // when click  cancel clear input
     function handleClear() {
-        setId('');
+        setUsername('');
         setLink('');
         setType('');
         setCollapseState(false);
     }
+
+    // add new social network
     function handleSubmit() {
-        const checkUnique = some(social, { id: id, link: link, type: type });
+        const checkUnique = some(social, { username: username, link: link, type: type });
         if (!checkUnique) {
-            setSocial((oldArray) => [...oldArray, { id, link, type }]);
+            setSocial((oldArray) => [...oldArray, { id: uuidv4(), username, link, type }]);
+            setUniqueStatus(false);
         } else {
             setUniqueStatus(true);
         }
@@ -128,8 +135,8 @@ const FormSection = (): ReactElement => {
                                                     borderColor: 'gray',
                                                 },
                                             }}
-                                            value={id}
-                                            onChange={(e) => setId(e.target.value)}
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
                                             label='آی دی (ID)'
                                         />
                                     </FormControl>
