@@ -1,4 +1,4 @@
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import {
     Button,
     Collapse,
@@ -16,9 +16,11 @@ import { amber, blueGrey } from '@mui/material/colors';
 import AddIcon from '@mui/icons-material/Add';
 import ShowSection from './showSection';
 import some from 'lodash/some';
-import { useRecoilState } from 'recoil';
-import socialState from '../store/atom';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { editData, isEdit, socialState } from '../store/atom';
 import { v4 as uuidv4 } from 'uuid';
+import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
+import { findIndex } from 'lodash';
 
 export interface Obj {
     [key: string]: string;
@@ -30,12 +32,24 @@ const FormSection = (): ReactElement => {
     const [link, setLink] = useState('');
     const [type, setType] = useState('');
     const [uniqueStatus, setUniqueStatus] = useState(false);
+    const [edit, setEdit] = useRecoilState(isEdit);
+    const isEditData = useRecoilValue(editData);
+
+    useEffect(() => {
+        if (edit) {
+            setCollapseState(true);
+            setType(isEditData.type);
+            setLink(isEditData.link);
+            setUsername(isEditData.username);
+        }
+    }, [edit, isEditData]);
 
     // when click  cancel clear input
     function handleClear() {
         setUsername('');
         setLink('');
         setType('');
+        setEdit(false);
         setCollapseState(false);
     }
 
@@ -48,6 +62,17 @@ const FormSection = (): ReactElement => {
         } else {
             setUniqueStatus(true);
         }
+    }
+
+    // edit rows
+    function handleEdit() {
+        const getIndex = findIndex(social, { id: isEditData.id });
+        const arr = social.map((item, index) => {
+            return index === getIndex ? { id: isEditData.id, link, username, type } : item;
+        });
+        setSocial(arr);
+        setEdit(false);
+        setCollapseState(false);
     }
 
     return (
@@ -63,10 +88,16 @@ const FormSection = (): ReactElement => {
                         <Button
                             sx={{ color: amber[400] }}
                             variant='text'
-                            startIcon={<AddIcon sx={{ color: amber[700] }} />}
+                            startIcon={
+                                edit ? (
+                                    <ModeEditOutlineOutlinedIcon sx={{ color: amber[700] }} />
+                                ) : (
+                                    <AddIcon sx={{ color: amber[700] }} />
+                                )
+                            }
                             onClick={() => setCollapseState(!collapseState)}>
                             <Typography color={amber[700]} variant='caption'>
-                                افزودن مسیر ارتباطی
+                                {edit ? 'ویرایش مسیر ارتباطی' : ' افزودن مسیر ارتباطی'}
                             </Typography>
                         </Button>
                     </Box>
@@ -75,7 +106,7 @@ const FormSection = (): ReactElement => {
                     <Collapse in={collapseState}>
                         <Box sx={{ bgcolor: '#303A44', width: '96%', borderRadius: 3 }} mx={2} my={2} py={2}>
                             <Typography variant='caption' color='white' mx={2}>
-                                افزودن مسیر ارتباطی
+                                {edit ? 'ویرایش مسیر ارتباطی' : ' افزودن مسیر ارتباطی'}
                             </Typography>
 
                             <Grid container direction='row' spacing={2} my={1}>
@@ -154,16 +185,17 @@ const FormSection = (): ReactElement => {
                                     </Button>
                                     <Button
                                         variant='contained'
-                                        onClick={handleSubmit}
+                                        onClick={edit ? handleEdit : handleSubmit}
                                         sx={{
                                             color: 'black',
+                                            fontSize: 13,
                                             borderRadius: 2,
                                             bgcolor: amber[700],
                                             '&:hover': {
                                                 bgcolor: amber[900],
                                             },
                                         }}>
-                                        ثبت مسیر ارتباطی
+                                        {edit ? `ویرایش مسیر ارتباطی  ${isEditData.type}` : 'ثبت مسیر ارتباطی'}
                                     </Button>
                                 </Stack>
                             </Grid>

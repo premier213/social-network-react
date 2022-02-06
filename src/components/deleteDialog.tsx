@@ -14,7 +14,7 @@ import { amber } from '@mui/material/colors';
 import { filter } from 'lodash';
 import { ReactElement, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import socialState from '../store/atom';
+import { socialState } from '../store/atom';
 
 export interface Props {
     id: string;

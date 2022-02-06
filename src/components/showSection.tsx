@@ -5,6 +5,9 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import showIcon from '../utils/showIcon';
 import { amber } from '@mui/material/colors';
 import DeleteDialog from './deleteDialog';
+import { useSetRecoilState } from 'recoil';
+import { editData, isEdit } from '../store/atom';
+import { find } from 'lodash';
 
 export interface TypeOfSocial {
     [key: string]: string;
@@ -17,13 +20,29 @@ const ShowSection = ({ social }: Obj): ReactElement => {
     const [isOpen, setIsOpen] = useState(false);
     const [isId, setIsId] = useState('');
     const [isUsername, setIsUsername] = useState('');
+    const setEdit = useSetRecoilState(isEdit);
+    const setIsEditData = useSetRecoilState(editData);
 
+    // find row & set to recoil state
+    function handleEdit(id: string) {
+        const result = find(social, function (o) {
+            return o.id === id;
+        });
+
+        if (result !== undefined) {
+            setEdit(true);
+            setIsEditData(result);
+        }
+    }
+
+    // handle function for delete row
     function handleDelete(id: string, username: string) {
         setIsOpen(true);
         setIsId(id);
         setIsUsername(username);
     }
 
+    // close dialog delete row
     function handleCloseDialog() {
         setIsOpen(false);
     }
@@ -62,6 +81,7 @@ const ShowSection = ({ social }: Obj): ReactElement => {
                                         sx={{ color: amber[600] }}
                                         variant='text'
                                         size='small'
+                                        onClick={() => handleEdit(item.id)}
                                         startIcon={<ModeEditOutlineOutlinedIcon />}>
                                         <Typography variant='caption'>ویرایش</Typography>
                                     </Button>
