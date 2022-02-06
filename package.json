@@ -9,6 +9,7 @@
     "@mui/material": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "formik": "^2.2.9",
     "jss-rtl": "^0.3.0",
     "lodash": "^4.17.21",
     "react": "latest",
@@ -18,7 +19,8 @@
     "stylis": "^4.0.13",
     "stylis-plugin-rtl": "^2.1.1",
     "typescript": "latest",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "yup": "^0.32.11"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -41,6 +43,7 @@
   "devDependencies": {
     "@types/lodash": "^4.14.178",
     "@types/stylis": "^4.0.2",
-    "@types/uuid": "^8.3.4"
+    "@types/uuid": "^8.3.4",
+    "@types/yup": "^0.29.13"
   }
 }

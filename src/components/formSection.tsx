@@ -3,6 +3,7 @@ import {
     Button,
     Collapse,
     FormControl,
+    FormHelperText,
     Grid,
     InputLabel,
     MenuItem,
@@ -21,6 +22,8 @@ import { editData, isEdit, socialState } from '../store/atom';
 import { v4 as uuidv4 } from 'uuid';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
 import { findIndex } from 'lodash';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
 
 export interface Obj {
     [key: string]: string;
@@ -45,35 +48,58 @@ const FormSection = (): ReactElement => {
     }, [edit, isEditData]);
 
     // when click  cancel clear input
-    function handleClear() {
-        setUsername('');
-        setLink('');
+    function handleReset() {
+        formik.resetForm();
         setType('');
+        setLink('');
+        setUsername('');
         setEdit(false);
         setCollapseState(false);
     }
 
-    // add new social network
-    function handleSubmit() {
-        const checkUnique = some(social, { username: username, link: link, type: type });
-        if (!checkUnique) {
-            setSocial((oldArray) => [...oldArray, { id: uuidv4(), username, link, type }]);
-            setUniqueStatus(false);
-        } else {
-            setUniqueStatus(true);
-        }
-    }
+    const validationSchema = yup.object({
+        type: yup.string().required('انتخاب شبکه الزامی است'),
+        link: yup.string().required('لینک را وارد کنید'),
+        username: yup.string().required('آی دی را وارد کنید'),
+    });
 
-    // edit rows
-    function handleEdit() {
-        const getIndex = findIndex(social, { id: isEditData.id });
-        const arr = social.map((item, index) => {
-            return index === getIndex ? { id: isEditData.id, link, username, type } : item;
-        });
-        setSocial(arr);
-        setEdit(false);
-        setCollapseState(false);
-    }
+    const formik = useFormik({
+        enableReinitialize: true,
+        initialValues: {
+            type,
+            link,
+            username,
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values, { resetForm }) => {
+            if (edit) {
+                const getIndex = findIndex(social, { id: isEditData.id });
+                const arr = social.map((item, index) => {
+                    return index === getIndex
+                        ? { id: isEditData.id, username: values.username, link: values.link, type: values.type }
+                        : item;
+                });
+                setSocial(arr);
+                setEdit(false);
+                setType('');
+                setLink('');
+                setUsername('');
+                setCollapseState(false);
+            } else {
+                const checkUnique = some(social, { username: values.username, link: values.link, type: values.type });
+                if (!checkUnique) {
+                    setSocial((oldArray) => [
+                        ...oldArray,
+                        { id: uuidv4(), username: values.username, link: values.link, type: values.type },
+                    ]);
+                    setUniqueStatus(false);
+                    resetForm();
+                } else {
+                    setUniqueStatus(true);
+                }
+            }
+        },
+    });
 
     return (
         <>
@@ -109,96 +135,119 @@ const FormSection = (): ReactElement => {
                                 {edit ? 'ویرایش مسیر ارتباطی' : ' افزودن مسیر ارتباطی'}
                             </Typography>
 
-                            <Grid container direction='row' spacing={2} my={1}>
-                                <Grid item xs={4}>
-                                    <FormControl sx={{ m: 1, width: '90%' }}>
-                                        <InputLabel id='type' sx={{ color: 'white' }}>
-                                            نوع
-                                        </InputLabel>
-                                        <Select
-                                            sx={{
-                                                color: 'white',
-                                                '& .MuiOutlinedInput-notchedOutline': {
-                                                    borderColor: 'gray',
-                                                },
-                                            }}
-                                            value={type}
-                                            onChange={(e) => setType(e.target.value)}
-                                            id='type'
-                                            label='نوع'
-                                            displayEmpty
-                                            inputProps={{ 'aria-label': 'Without label' }}>
-                                            <MenuItem value='اینستاگرام'>اینستاگرام </MenuItem>
-                                            <MenuItem value='فیسبوک'>فیسبوک</MenuItem>
-                                            <MenuItem value='تویتر'>تویتر</MenuItem>
-                                            <MenuItem value='تلگرام'>تلگرام</MenuItem>
-                                            <MenuItem value='لینکدین'>لینکدین</MenuItem>
-                                            <MenuItem value='وبسایت'>وبسایت</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <FormControl sx={{ m: 1, width: '90%' }}>
-                                        <TextField
-                                            sx={{
-                                                '.MuiInputBase-root': {
+                            <form onSubmit={formik.handleSubmit}>
+                                <Grid container direction='row' spacing={2} my={1}>
+                                    <Grid item xs={4}>
+                                        <FormControl sx={{ m: 1, width: '90%' }}>
+                                            <InputLabel id='type' sx={{ color: 'white' }}>
+                                                نوع
+                                            </InputLabel>
+                                            <Select
+                                                id='type'
+                                                label='نوع'
+                                                name='type'
+                                                sx={{
                                                     color: 'white',
-                                                },
-                                                '& .MuiOutlinedInput-notchedOutline': {
-                                                    borderColor: 'gray',
-                                                },
-                                            }}
-                                            value={link}
-                                            onChange={(e) => setLink(e.target.value)}
-                                            label='لینک'
-                                        />
-                                    </FormControl>
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'gray',
+                                                    },
+                                                }}
+                                                error={formik.touched.type && Boolean(formik.errors.type)}
+                                                value={formik.values.type}
+                                                onChange={formik.handleChange}>
+                                                <MenuItem value='اینستاگرام'>اینستاگرام </MenuItem>
+                                                <MenuItem value='فیسبوک'>فیسبوک</MenuItem>
+                                                <MenuItem value='تویتر'>تویتر</MenuItem>
+                                                <MenuItem value='تلگرام'>تلگرام</MenuItem>
+                                                <MenuItem value='لینکدین'>لینکدین</MenuItem>
+                                                <MenuItem value='وبسایت'>وبسایت</MenuItem>
+                                            </Select>
+                                            <FormHelperText>{formik.touched.type && formik.errors.type}</FormHelperText>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <FormControl sx={{ m: 1, width: '90%' }}>
+                                            <TextField
+                                                label='لینک'
+                                                id='link'
+                                                name='link'
+                                                value={formik.values.link}
+                                                onChange={formik.handleChange}
+                                                error={formik.touched.link && Boolean(formik.errors.link)}
+                                                helperText={formik.touched.link && formik.errors.link}
+                                                sx={{
+                                                    '.MuiInputBase-root': {
+                                                        color: 'white',
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'gray',
+                                                    },
+                                                }}
+                                                // value={link}
+                                                // onChange={(e) => setLink(e.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <FormControl sx={{ m: 1, width: '90%' }}>
+                                            <TextField
+                                                label='آی دی (ID)'
+                                                id='username'
+                                                name='username'
+                                                value={formik.values.username}
+                                                onChange={formik.handleChange}
+                                                error={formik.touched.username && Boolean(formik.errors.username)}
+                                                helperText={formik.touched.username && formik.errors.username}
+                                                sx={{
+                                                    '.MuiInputBase-root': {
+                                                        color: 'white',
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        color: 'white',
+                                                        borderColor: 'gray',
+                                                    },
+                                                }}
+                                                // value={username}
+                                                // onChange={(e) => setUsername(e.target.value)}
+                                            />
+                                        </FormControl>
+                                        <Box sx={{ color: 'red', fontSize: 13 }}>
+                                            {uniqueStatus && 'مقادیر تکراری است'}
+                                        </Box>
+                                    </Grid>
                                 </Grid>
-                                <Grid item xs={4}>
-                                    <FormControl sx={{ m: 1, width: '90%' }}>
-                                        <TextField
-                                            sx={{
-                                                '.MuiInputBase-root': {
-                                                    color: 'white',
-                                                },
-                                                '& .MuiOutlinedInput-notchedOutline': {
-                                                    color: 'white',
-                                                    borderColor: 'gray',
-                                                },
-                                            }}
-                                            value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
-                                            label='آی دی (ID)'
-                                        />
-                                    </FormControl>
-                                    <Box sx={{ color: 'red', fontSize: 13 }}>{uniqueStatus && 'مقادیر تکراری است'}</Box>
-                                </Grid>
-                            </Grid>
 
-                            <Grid container justifyContent='end'>
-                                <Stack spacing={2} direction='row' mx={2}>
-                                    <Button
-                                        onClick={handleClear}
-                                        variant='outlined'
-                                        sx={{ borderRadius: 2, color: 'white', borderColor: blueGrey[600], right: 0 }}>
-                                        انصراف
-                                    </Button>
-                                    <Button
-                                        variant='contained'
-                                        onClick={edit ? handleEdit : handleSubmit}
-                                        sx={{
-                                            color: 'black',
-                                            fontSize: 13,
-                                            borderRadius: 2,
-                                            bgcolor: amber[700],
-                                            '&:hover': {
-                                                bgcolor: amber[900],
-                                            },
-                                        }}>
-                                        {edit ? `ویرایش مسیر ارتباطی  ${isEditData.type}` : 'ثبت مسیر ارتباطی'}
-                                    </Button>
-                                </Stack>
-                            </Grid>
+                                <Grid container justifyContent='end'>
+                                    <Stack spacing={2} direction='row' mx={2}>
+                                        <Button
+                                            type='reset'
+                                            onClick={() => handleReset()}
+                                            variant='outlined'
+                                            sx={{
+                                                borderRadius: 2,
+                                                color: 'white',
+                                                borderColor: blueGrey[600],
+                                                right: 0,
+                                            }}>
+                                            انصراف
+                                        </Button>
+                                        <Button
+                                            type='submit'
+                                            variant='contained'
+                                            sx={{
+                                                color: 'black',
+                                                fontSize: 13,
+                                                borderRadius: 2,
+                                                bgcolor: amber[700],
+                                                '&:hover': {
+                                                    bgcolor: amber[900],
+                                                },
+                                            }}>
+                                            {edit ? `ویرایش مسیر ارتباطی  ${isEditData.type}` : 'ثبت مسیر ارتباطی'}
+                                        </Button>
+                                    </Stack>
+                                </Grid>
+                            </form>
                         </Box>
                     </Collapse>
                 </Grid>
