@@ -11,31 +11,22 @@ import {
     Stack,
     TextField,
     Typography,
+    useTheme,
 } from '@mui/material';
 import { Box } from '@mui/system';
-import { amber, blueGrey } from '@mui/material/colors';
+import { amber, blueGrey, red } from '@mui/material/colors';
 import AddIcon from '@mui/icons-material/Add';
 import ShowSection from './showSection';
 import some from 'lodash/some';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { editData, isEdit, socialState } from '../store/atom';
-import { v4 as uuidv4 } from 'uuid';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
-import { add, findIndex } from 'lodash';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { instance } from '../services/config';
 import { useList } from '../services/userSocial';
 
-export interface Obj {
-    [key: string]: string;
-}
-export interface TypeOfSocial {
-    [key: string]: string;
-}
-
 const FormSection = (): ReactElement => {
-    const [social, setSocial] = useState([] as TypeOfSocial[]);
+    const social = useRecoilValue(socialState);
     const [collapseState, setCollapseState] = useState(false);
     const [username, setUsername] = useState('');
     const [link, setLink] = useState('');
@@ -44,13 +35,11 @@ const FormSection = (): ReactElement => {
     const [edit, setEdit] = useRecoilState(isEdit);
     const isEditData = useRecoilValue(editData);
     const { add, edit: editFunction } = useList();
+    const theme = useTheme();
+    const { refetch } = useList();
 
     useEffect(() => {
-        instance.get('/socials').then((item) => {
-            if (item.status === 200) {
-                setSocial(item.data);
-            }
-        });
+        // Condition when use edit social
         if (edit) {
             setCollapseState(true);
             setType(isEditData.type);
@@ -59,7 +48,7 @@ const FormSection = (): ReactElement => {
         }
     }, [edit, isEditData]);
 
-    // when click  cancel clear input
+    // when click cancel clear inputs
     function handleReset() {
         formik.resetForm();
         setType('');
@@ -67,14 +56,17 @@ const FormSection = (): ReactElement => {
         setUsername('');
         setEdit(false);
         setCollapseState(false);
+        setUniqueStatus(false);
     }
 
+    // validation social form
     const validationSchema = yup.object({
         type: yup.string().required('انتخاب شبکه الزامی است'),
         link: yup.string().required('لینک را وارد کنید'),
         username: yup.string().required('آی دی را وارد کنید'),
     });
 
+    // handle form with formik
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
@@ -83,7 +75,8 @@ const FormSection = (): ReactElement => {
             username,
         },
         validationSchema: validationSchema,
-        onSubmit: (values, { resetForm }) => {
+        onSubmit: async (values, { resetForm }) => {
+            // submit edit social when exist
             if (edit) {
                 editFunction({ id: isEditData.id, username: values.username, link: values.link, type: values.type });
                 setEdit(false);
@@ -92,11 +85,13 @@ const FormSection = (): ReactElement => {
                 setUsername('');
                 setCollapseState(false);
             } else {
+                // submit new social
                 const checkUnique = some(social, { username: values.username, link: values.link, type: values.type });
 
                 if (!checkUnique) {
                     add({ username: values.username, link: values.link, type: values.type });
                     resetForm();
+                    setUniqueStatus(false);
                 } else {
                     setUniqueStatus(true);
                 }
@@ -106,7 +101,15 @@ const FormSection = (): ReactElement => {
 
     return (
         <>
-            <Grid container direction='column' sx={{ width: 1 / 2, bgcolor: '#1E2832', borderRadius: 5, boxShadow: 3 }}>
+            <Grid
+                container
+                direction='column'
+                sx={{
+                    width: 1 / 2,
+                    bgcolor: theme.palette.mode === 'dark' ? blueGrey[800] : blueGrey[200],
+                    borderRadius: 5,
+                    boxShadow: 3,
+                }}>
                 <Grid item>
                     <Box m={4} color='gray'>
                         <Typography variant='caption'>مسیرهای ارتباطی</Typography>
@@ -115,17 +118,20 @@ const FormSection = (): ReactElement => {
                 <Grid item>
                     <Box mx={2}>
                         <Button
-                            sx={{ color: amber[400] }}
                             variant='text'
                             startIcon={
                                 edit ? (
-                                    <ModeEditOutlineOutlinedIcon sx={{ color: amber[700] }} />
+                                    <ModeEditOutlineOutlinedIcon
+                                        sx={{ color: theme.palette.mode === 'dark' ? amber[600] : amber[900] }}
+                                    />
                                 ) : (
-                                    <AddIcon sx={{ color: amber[700] }} />
+                                    <AddIcon sx={{ color: theme.palette.mode === 'dark' ? amber[600] : amber[900] }} />
                                 )
                             }
                             onClick={() => setCollapseState(!collapseState)}>
-                            <Typography color={amber[700]} variant='caption'>
+                            <Typography
+                                color={theme.palette.mode === 'dark' ? amber[600] : amber[900]}
+                                variant='caption'>
                                 {edit ? 'ویرایش مسیر ارتباطی' : ' افزودن مسیر ارتباطی'}
                             </Typography>
                         </Button>
@@ -133,8 +139,16 @@ const FormSection = (): ReactElement => {
                 </Grid>
                 <Grid item>
                     <Collapse in={collapseState}>
-                        <Box sx={{ bgcolor: '#303A44', width: '96%', borderRadius: 3 }} mx={2} my={2} py={2}>
-                            <Typography variant='caption' color='white' mx={2}>
+                        <Box
+                            sx={{
+                                bgcolor: theme.palette.mode === 'dark' ? blueGrey[900] : blueGrey[100],
+                                width: '96%',
+                                borderRadius: 3,
+                            }}
+                            mx={2}
+                            my={2}
+                            py={2}>
+                            <Typography variant='caption' mx={2}>
                                 {edit ? 'ویرایش مسیر ارتباطی' : ' افزودن مسیر ارتباطی'}
                             </Typography>
 
@@ -142,19 +156,11 @@ const FormSection = (): ReactElement => {
                                 <Grid container direction='row' spacing={2} my={1}>
                                     <Grid item xs={4}>
                                         <FormControl sx={{ m: 1, width: '90%' }}>
-                                            <InputLabel id='type' sx={{ color: 'white' }}>
-                                                نوع
-                                            </InputLabel>
+                                            <InputLabel id='type'>نوع</InputLabel>
                                             <Select
                                                 id='type'
                                                 label='نوع'
                                                 name='type'
-                                                sx={{
-                                                    color: 'white',
-                                                    '& .MuiOutlinedInput-notchedOutline': {
-                                                        borderColor: 'gray',
-                                                    },
-                                                }}
                                                 error={formik.touched.type && Boolean(formik.errors.type)}
                                                 value={formik.values.type}
                                                 onChange={formik.handleChange}>
@@ -178,16 +184,6 @@ const FormSection = (): ReactElement => {
                                                 onChange={formik.handleChange}
                                                 error={formik.touched.link && Boolean(formik.errors.link)}
                                                 helperText={formik.touched.link && formik.errors.link}
-                                                sx={{
-                                                    '.MuiInputBase-root': {
-                                                        color: 'white',
-                                                    },
-                                                    '& .MuiOutlinedInput-notchedOutline': {
-                                                        borderColor: 'gray',
-                                                    },
-                                                }}
-                                                // value={link}
-                                                // onChange={(e) => setLink(e.target.value)}
                                             />
                                         </FormControl>
                                     </Grid>
@@ -201,26 +197,21 @@ const FormSection = (): ReactElement => {
                                                 onChange={formik.handleChange}
                                                 error={formik.touched.username && Boolean(formik.errors.username)}
                                                 helperText={formik.touched.username && formik.errors.username}
-                                                sx={{
-                                                    '.MuiInputBase-root': {
-                                                        color: 'white',
-                                                    },
-                                                    '& .MuiOutlinedInput-notchedOutline': {
-                                                        color: 'white',
-                                                        borderColor: 'gray',
-                                                    },
-                                                }}
-                                                // value={username}
-                                                // onChange={(e) => setUsername(e.target.value)}
                                             />
                                         </FormControl>
-                                        <Box sx={{ color: 'red', fontSize: 13 }}>
-                                            {uniqueStatus && 'مقادیر تکراری است'}
-                                        </Box>
                                     </Grid>
                                 </Grid>
 
-                                <Grid container justifyContent='end'>
+                                <Grid container justifyContent='space-between'>
+                                    <Box
+                                        mx={2}
+                                        my={1}
+                                        sx={{
+                                            color: theme.palette.mode === 'dark' ? red[500] : red[500],
+                                            fontSize: 13,
+                                        }}>
+                                        {uniqueStatus && 'مقادیر تکراری است'}
+                                    </Box>
                                     <Stack spacing={2} direction='row' mx={2}>
                                         <Button
                                             type='reset'
@@ -228,7 +219,7 @@ const FormSection = (): ReactElement => {
                                             variant='outlined'
                                             sx={{
                                                 borderRadius: 2,
-                                                color: 'white',
+                                                color: theme.palette.mode === 'dark' ? blueGrey[200] : blueGrey[800],
                                                 borderColor: blueGrey[600],
                                                 right: 0,
                                             }}>
@@ -243,7 +234,7 @@ const FormSection = (): ReactElement => {
                                                 borderRadius: 2,
                                                 bgcolor: amber[700],
                                                 '&:hover': {
-                                                    bgcolor: amber[900],
+                                                    bgcolor: amber[800],
                                                 },
                                             }}>
                                             {edit ? `ویرایش مسیر ارتباطی  ${isEditData.type}` : 'ثبت مسیر ارتباطی'}

@@ -1,18 +1,14 @@
-import { Box, Button, Grid, Typography } from '@mui/material';
+import { Box, Button, Grid, Typography, useTheme } from '@mui/material';
 import { ReactElement, useEffect, useState } from 'react';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import showIcon from '../utils/showIcon';
-import { amber } from '@mui/material/colors';
+import { amber, blueGrey, grey } from '@mui/material/colors';
 import DeleteDialog from './deleteDialog';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { editData, isEdit, socialState } from '../store/atom';
 import { find } from 'lodash';
 import { useList } from '../services/userSocial';
-
-export interface TypeOfSocial {
-    [key: string]: string;
-}
 
 const ShowSection = (): ReactElement => {
     const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +18,14 @@ const ShowSection = (): ReactElement => {
     const setIsEditData = useSetRecoilState(editData);
     const social = useRecoilValue(socialState);
     const { refetch } = useList();
+    const theme = useTheme();
 
+    // render list of social when page load
     useEffect(() => {
         refetch();
     }, []);
 
-    // find row & set to recoil state
+    // find id from global state & edit selected social
     function handleEdit(id: string) {
         const result = find(social, function (o) {
             return o.id === id;
@@ -39,50 +37,91 @@ const ShowSection = (): ReactElement => {
         }
     }
 
-    // handle function for delete row
+    // handle function for delete social network
     function handleDelete(id: string, username: string) {
         setIsOpen(true);
         setIsId(id);
         setIsUsername(username);
     }
 
-    // close dialog delete row
+    // close dialog delete social
     function handleCloseDialog() {
         setIsOpen(false);
     }
 
     return (
         <Grid item>
-            <Box mx={2} my={2} py={2} sx={{ bgcolor: '#303A44', width: '96%', borderRadius: 2 }}>
+            <Box
+                mx={2}
+                my={2}
+                py={2}
+                sx={{
+                    bgcolor: theme.palette.mode === 'dark' ? blueGrey[900] : blueGrey[100],
+                    width: '96%',
+                    borderRadius: 2,
+                }}>
                 {social?.map((item) => {
                     return (
                         <Grid container direction='row' key={item.id} mx={2} sx={{ fontSize: 12 }}>
-                            <Box sx={{ color: 'white', marginTop: '-2px' }} mr={1}>
+                            <Box
+                                sx={{
+                                    color: theme.palette.mode === 'dark' ? blueGrey[100] : blueGrey[900],
+                                    marginTop: '-2px',
+                                }}
+                                mr={1}>
                                 {showIcon(item.type)}
                             </Box>
 
-                            <Box sx={{ color: 'white', width: '10%' }}>{item.type}</Box>
-
-                            <Box sx={{ color: 'white', width: '20%' }}>
-                                <Typography mx={1} variant='caption' sx={{ color: 'gray' }}>
-                                    آی دی:
-                                </Typography>{' '}
-                                {item.username}
+                            <Box
+                                sx={{
+                                    color: theme.palette.mode === 'dark' ? blueGrey[100] : blueGrey[900],
+                                    width: '10%',
+                                }}>
+                                {item.type}
                             </Box>
 
-                            <Box sx={{ color: 'white', width: '40%' }}>
-                                <Typography mx={1} variant='caption' sx={{ color: 'gray' }}>
+                            <Box
+                                sx={{
+                                    color: theme.palette.mode === 'dark' ? blueGrey[100] : blueGrey[900],
+                                    width: '20%',
+                                }}>
+                                <Typography
+                                    mx={1}
+                                    variant='caption'
+                                    sx={{ color: theme.palette.mode === 'dark' ? blueGrey[100] : blueGrey[900] }}>
+                                    آی دی:
+                                </Typography>
+                                <Typography
+                                    mx={1}
+                                    variant='caption'
+                                    sx={{ color: theme.palette.mode === 'dark' ? amber[500] : amber[800] }}>
+                                    {item.username}
+                                </Typography>
+                            </Box>
+
+                            <Box
+                                sx={{
+                                    color: theme.palette.mode === 'dark' ? amber[500] : amber[800],
+                                    width: '40%',
+                                }}>
+                                <Typography
+                                    mx={1}
+                                    variant='caption'
+                                    sx={{ color: theme.palette.mode === 'dark' ? blueGrey[100] : blueGrey[900] }}>
                                     لینک:
                                 </Typography>
-                                <Typography mx={1} variant='caption' sx={{ color: amber[600] }}>
+                                <Typography
+                                    mx={1}
+                                    variant='caption'
+                                    sx={{ color: theme.palette.mode === 'dark' ? amber[500] : amber[800] }}>
                                     {item.link}
                                 </Typography>
                             </Box>
 
-                            <Grid xs={1}>
+                            <Grid item xs={1}>
                                 <Box>
                                     <Button
-                                        sx={{ color: amber[600] }}
+                                        sx={{ color: theme.palette.mode === 'dark' ? amber[500] : amber[800] }}
                                         variant='text'
                                         size='small'
                                         onClick={() => handleEdit(item.id)}
@@ -91,7 +130,7 @@ const ShowSection = (): ReactElement => {
                                     </Button>
                                 </Box>
                             </Grid>
-                            <Grid xs={1}>
+                            <Grid item xs={1}>
                                 <Box ml={2}>
                                     <Button
                                         onClick={() => handleDelete(item.id, item.username)}

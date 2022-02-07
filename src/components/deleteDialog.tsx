@@ -6,28 +6,18 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    InputProps,
     TextField,
-    TextFieldProps,
 } from '@mui/material';
-import { amber } from '@mui/material/colors';
-import { filter } from 'lodash';
-import { ReactElement, useRef, useState } from 'react';
-import { useRecoilState } from 'recoil';
+import { amber, blueGrey } from '@mui/material/colors';
+import { ReactElement, useState } from 'react';
 import { useList } from '../services/userSocial';
-import { socialState } from '../store/atom';
+import { PropsDelete } from '../types/global';
+import { useTheme } from '@mui/material';
 
-export interface Props {
-    id: string;
-    username: string;
-    open: boolean;
-    close: () => void;
-}
-
-const DeleteDialog = ({ id, username, open, close }: Props): ReactElement => {
+const DeleteDialog = ({ id, username, open, close }: PropsDelete): ReactElement => {
     const [isAccepted, setIsAccepted] = useState(false);
-    const [social, setSocial] = useRecoilState(socialState);
     const { deleteSocial } = useList();
+    const theme = useTheme();
 
     // check if input is accepted
     function handleAccept(value: string) {
@@ -45,27 +35,18 @@ const DeleteDialog = ({ id, username, open, close }: Props): ReactElement => {
 
     return (
         <Dialog open={open}>
-            <Box sx={{ bgcolor: '#303A44' }}>
-                <DialogTitle sx={{ color: 'white' }}>آیا از تصمیم خود مطمئن هستید؟</DialogTitle>
+            <Box sx={{ bgcolor: theme.palette.mode === 'dark' ? blueGrey[900] : blueGrey[100] }}>
+                <DialogTitle>آیا از تصمیم خود مطمئن هستید؟</DialogTitle>
                 <DialogContent>
-                    <DialogContentText sx={{ fontSize: 13, marginBottom: 2, color: 'white' }}>
+                    <DialogContentText sx={{ fontSize: 13, marginBottom: 2 }}>
                         برای حذف مسیر ارتباطی {username} لطفا تائید را بنویسید
                     </DialogContentText>
-                    <TextField
-                        onChange={(e): void => handleAccept(e.target.value)}
-                        fullWidth
-                        sx={{
-                            '.MuiInputBase-root': {
-                                color: 'white',
-                            },
-                            '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: 'gray',
-                            },
-                        }}
-                    />
+                    <TextField onChange={(e): void => handleAccept(e.target.value)} fullWidth />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={close} sx={{ color: amber[600], fontSize: 13 }}>
+                    <Button
+                        onClick={close}
+                        sx={{ color: theme.palette.mode === 'dark' ? amber[600] : amber[800], fontSize: 13 }}>
                         انصراف
                     </Button>
                     <Button

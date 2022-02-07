@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Grid, IconButton, PaletteMode } from '@mui/material';
+import { Grid, PaletteMode } from '@mui/material';
 import Header from './components/header';
 import FormSection from './components/formSection';
 import { RecoilRoot } from 'recoil';
@@ -12,29 +12,43 @@ import createCache from '@emotion/cache';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import BreadCrumb from './components/breadCrumb';
 import ThemePanel from './components/themePanel';
-import TuneIcon from '@mui/icons-material/Tune';
-import { amber } from '@mui/material/colors';
+import SettingButton from './components/settingButton';
 
-export const ColorModeContext = React.createContext({ toggleColorMode: () => {} });
+// context api for darkmode theme
+export const ColorModeContext = React.createContext({ lightMode: () => {}, darkMode: () => {} });
 
 export default function App() {
-    const [mode, setMode] = React.useState<PaletteMode>('light');
+    const [mode, setMode] = React.useState<PaletteMode>('dark');
     const [openPanel, setOpenPanel] = React.useState(false);
-    function handleclosePanel() {
+
+    // handle open/ close dark mode drawer
+    function handleClosePanel() {
         setOpenPanel(false);
     }
+    function handleOpenPanel() {
+        setOpenPanel(true);
+    }
+
+    // mui support rtl mode
     const cacheRtl = createCache({
         key: 'muirtl',
         stylisPlugins: [prefixer, rtlPlugin],
     });
+
+    // switch dark mode
     const colorMode = React.useMemo(
         () => ({
-            toggleColorMode: () => {
-                setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+            lightMode: () => {
+                setMode('light');
+            },
+            darkMode: () => {
+                setMode('dark');
             },
         }),
         []
     );
+
+    // MUI theme config
     const theme = React.useMemo(
         () =>
             createTheme({
@@ -62,20 +76,8 @@ export default function App() {
                 <ColorModeContext.Provider value={colorMode}>
                     <ThemeProvider theme={theme}>
                         <CssBaseline />
-                        <Box dir='rtl' sx={{ bgcolor: '#141922' }}>
-                            <IconButton
-                                onClick={() => setOpenPanel(true)}
-                                sx={{
-                                    position: 'absolute',
-                                    right: 0,
-                                    top: '50%',
-                                    bgcolor: 'white',
-                                    '&:hover': {
-                                        bgcolor: amber[500],
-                                    },
-                                }}>
-                                <TuneIcon />
-                            </IconButton>
+                        <Box dir='rtl'>
+                            <SettingButton handleOpen={handleOpenPanel} />
                             <Header />
                             <Grid
                                 container
@@ -87,7 +89,7 @@ export default function App() {
                                 style={{ minHeight: '100vh' }}>
                                 <BreadCrumb />
                                 <FormSection />
-                                <ThemePanel open={openPanel} close={handleclosePanel} />
+                                <ThemePanel open={openPanel} close={handleClosePanel} />
                             </Grid>
                         </Box>
                     </ThemeProvider>

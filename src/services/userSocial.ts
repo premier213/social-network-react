@@ -1,18 +1,13 @@
 import { instance } from './config';
-import { useRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { socialState } from '../store/atom';
+import { AddSocial, ListOfSocial } from '../types/global';
 
-export interface Add {
-    [key: string]: string;
-}
-export interface List {
-    refetch: () => void;
-    add: (props: Add) => void;
-    edit: (props: Add) => void;
-    deleteSocial: (props: string) => void;
-}
-export function useList(): List {
-    const [social, setSocial] = useRecoilState(socialState);
+export function useList(): ListOfSocial {
+    // global state of social
+    const setSocial = useSetRecoilState(socialState);
+
+    //show social network list
     function refetch() {
         instance.get('/socials').then((item) => {
             if (item.status === 200) {
@@ -20,16 +15,19 @@ export function useList(): List {
             }
         });
     }
-    function add(props: Add) {
-        const { username, link, type } = props;
 
+    // add new social network
+    function add(props: AddSocial) {
+        const { username, link, type } = props;
         instance.post('/socials', { username, link, type }).then((item) => {
             if (item.status === 201) {
                 refetch();
             }
         });
     }
-    function edit(props: Add) {
+
+    // edit selected social network
+    function edit(props: AddSocial) {
         const { id, username, link, type } = props;
         instance.put(`/socials/${id}`, { username, link, type }).then((item) => {
             if (item.status === 200) {
@@ -37,6 +35,8 @@ export function useList(): List {
             }
         });
     }
+
+    // delete selected social network
     function deleteSocial(id: string) {
         instance.delete(`/socials/${id}`).then((item) => {
             if (item.status === 200) {

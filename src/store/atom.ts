@@ -1,11 +1,8 @@
 import { atom } from 'recoil';
-
-export interface Obj {
-    [key: string]: string;
-}
+import { SocialState } from '../types/global';
 
 // save state for list of social rows
-const socialState = atom<Obj[]>({
+const socialState = atom<SocialState[]>({
     key: 'socialState',
     default: [],
 });
@@ -15,7 +12,7 @@ const isEdit = atom({
     default: false,
 });
 // keep selected row for edit
-const editData = atom<Obj>({
+const editData = atom<SocialState>({
     key: 'editData',
     default: {},
 });
