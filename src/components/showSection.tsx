@@ -1,27 +1,31 @@
 import { Box, Button, Grid, Typography } from '@mui/material';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import showIcon from '../utils/showIcon';
 import { amber } from '@mui/material/colors';
 import DeleteDialog from './deleteDialog';
-import { useSetRecoilState } from 'recoil';
-import { editData, isEdit } from '../store/atom';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { editData, isEdit, socialState } from '../store/atom';
 import { find } from 'lodash';
+import { useList } from '../services/userSocial';
 
 export interface TypeOfSocial {
     [key: string]: string;
 }
-export interface Obj {
-    social: TypeOfSocial[];
-}
 
-const ShowSection = ({ social }: Obj): ReactElement => {
+const ShowSection = (): ReactElement => {
     const [isOpen, setIsOpen] = useState(false);
     const [isId, setIsId] = useState('');
     const [isUsername, setIsUsername] = useState('');
     const setEdit = useSetRecoilState(isEdit);
     const setIsEditData = useSetRecoilState(editData);
+    const social = useRecoilValue(socialState);
+    const { refetch } = useList();
+
+    useEffect(() => {
+        refetch();
+    }, []);
 
     // find row & set to recoil state
     function handleEdit(id: string) {

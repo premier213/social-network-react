@@ -21,15 +21,21 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 import { editData, isEdit, socialState } from '../store/atom';
 import { v4 as uuidv4 } from 'uuid';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
-import { findIndex } from 'lodash';
+import { add, findIndex } from 'lodash';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import { instance } from '../services/config';
+import { useList } from '../services/userSocial';
 
 export interface Obj {
     [key: string]: string;
 }
+export interface TypeOfSocial {
+    [key: string]: string;
+}
+
 const FormSection = (): ReactElement => {
-    const [social, setSocial] = useRecoilState(socialState);
+    const [social, setSocial] = useState([] as TypeOfSocial[]);
     const [collapseState, setCollapseState] = useState(false);
     const [username, setUsername] = useState('');
     const [link, setLink] = useState('');
@@ -37,8 +43,14 @@ const FormSection = (): ReactElement => {
     const [uniqueStatus, setUniqueStatus] = useState(false);
     const [edit, setEdit] = useRecoilState(isEdit);
     const isEditData = useRecoilValue(editData);
+    const { add, edit: editFunction } = useList();
 
     useEffect(() => {
+        instance.get('/socials').then((item) => {
+            if (item.status === 200) {
+                setSocial(item.data);
+            }
+        });
         if (edit) {
             setCollapseState(true);
             setType(isEditData.type);
@@ -73,13 +85,7 @@ const FormSection = (): ReactElement => {
         validationSchema: validationSchema,
         onSubmit: (values, { resetForm }) => {
             if (edit) {
-                const getIndex = findIndex(social, { id: isEditData.id });
-                const arr = social.map((item, index) => {
-                    return index === getIndex
-                        ? { id: isEditData.id, username: values.username, link: values.link, type: values.type }
-                        : item;
-                });
-                setSocial(arr);
+                editFunction({ id: isEditData.id, username: values.username, link: values.link, type: values.type });
                 setEdit(false);
                 setType('');
                 setLink('');
@@ -87,12 +93,9 @@ const FormSection = (): ReactElement => {
                 setCollapseState(false);
             } else {
                 const checkUnique = some(social, { username: values.username, link: values.link, type: values.type });
+
                 if (!checkUnique) {
-                    setSocial((oldArray) => [
-                        ...oldArray,
-                        { id: uuidv4(), username: values.username, link: values.link, type: values.type },
-                    ]);
-                    setUniqueStatus(false);
+                    add({ username: values.username, link: values.link, type: values.type });
                     resetForm();
                 } else {
                     setUniqueStatus(true);
@@ -252,7 +255,7 @@ const FormSection = (): ReactElement => {
                     </Collapse>
                 </Grid>
                 {/* list section */}
-                <ShowSection social={social} />
+                <ShowSection />
             </Grid>
         </>
     );

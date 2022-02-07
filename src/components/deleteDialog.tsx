@@ -14,6 +14,7 @@ import { amber } from '@mui/material/colors';
 import { filter } from 'lodash';
 import { ReactElement, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
+import { useList } from '../services/userSocial';
 import { socialState } from '../store/atom';
 
 export interface Props {
@@ -26,6 +27,7 @@ export interface Props {
 const DeleteDialog = ({ id, username, open, close }: Props): ReactElement => {
     const [isAccepted, setIsAccepted] = useState(false);
     const [social, setSocial] = useRecoilState(socialState);
+    const { deleteSocial } = useList();
 
     // check if input is accepted
     function handleAccept(value: string) {
@@ -35,11 +37,8 @@ const DeleteDialog = ({ id, username, open, close }: Props): ReactElement => {
     }
 
     // remove row from table by index
-    function handleDeleteObject(index: string) {
-        const newArray = filter(social, function (o) {
-            return o.id !== index;
-        });
-        setSocial(newArray);
+    function handleDeleteObject(id: string) {
+        deleteSocial(id);
         setIsAccepted(false);
         close();
     }
